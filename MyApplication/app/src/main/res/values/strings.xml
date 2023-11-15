@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name">Опросник Альфа-Банк</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Опросник Альфа-Банк</string>
+    <string name="nav_header_subtitle">text</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="menu_home">Опросы</string>
+    <string name="menu_gallery">Вторая страница</string>
+    <string name="menu_slideshow">Третья страница</string>
+
+    <string name="card1_text">"Любимый вид спорта"</string>
+    <string name="card2_text">"Любимый музыкальный жанр"</string>
+    <string name="card3_text">"Любимое время года"</string>
+    <string name="card4_text">"Любимая кухня"</string>
+    <string name="card5_text">"Путешествия мечты"</string>
+    <string name="card6_text">"Любимая книга"</string>
+    <string name="card7_text">"Любимый фильм"</string>
+    <string name="card8_text">"Любимое хобби"</string>
+    <string name="card9_text">"Любимый цвет"</string>
+    <string name="card10_text">"Любимый день недели"</string>
+    <string name="card11_text">"Любимое животное"</string>
+    <string name="card12_text">"Любимый бренд"</string>
+    <string name="login_page_welcome">Здравствуйте</string>
+    <string name="login_page_login_or_reg">авторизуйтесь или зарегистрируйтесь</string>
+    <string name="login_page_email">Email</string>
+    <string name="login_page_password">Пароль</string>
+    <string name="login_page_remember">Запомнить меня</string>
+    <string name="login_page_register">Зарегистрироваться</string>
+    <string name="login_page_login">Авторизоваться</string>
+    <string name="large_text">
+    </string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_login">LoginActivity</string>
+
+</resources>
