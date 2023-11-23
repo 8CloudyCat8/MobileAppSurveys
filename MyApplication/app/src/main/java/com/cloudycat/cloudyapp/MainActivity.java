@@ -54,8 +54,6 @@ public class MainActivity extends AppCompatActivity {
         String name;
         name= LoginActivity.FirstName;
 
-
-
     }
 
     @Override
