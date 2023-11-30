@@ -26,6 +26,10 @@ public class LoginActivity extends AppCompatActivity {
         TextView login = findViewById(R.id.login_email); // Поле ввода логина
         TextView password = findViewById(R.id.login_password); // Поле ввода пароля
 
+        // Автоматическое заполнение полей email и password
+        login.setText("test@gmail.com");
+        password.setText("testtest");
+
         buttonToLogin.setOnClickListener(view -> {
             if (login.getText().toString().isEmpty() || password.getText().toString().isEmpty()) {
                 showToast("Данные не заполнены");
@@ -65,10 +69,14 @@ public class LoginActivity extends AppCompatActivity {
                             Log.d("LoginActivity", "Email: " + Email);
                             Log.d("LoginActivity", "ID: " + ID);
 
-                            showToast("Привет, " + FirstName + " " + LastName);
+                            showToastLong("Привет, " + FirstName + " " + LastName);
+                            showToastShort("Email: " + Email);
+                            showToastShort("ID: " + ID);
                         } catch (JSONException e) {
+                            e.printStackTrace();
                             showToast("Ошибка обработки данных");
                         }
+
                     },
                     error -> {
                         showToast("Неверный логин или пароль");
@@ -88,7 +96,7 @@ public class LoginActivity extends AppCompatActivity {
                 Request.Method.GET,
                 "http://185.20.225.206/api/v1/logout",
                 null,
-                response -> showToast("Выход успешен"),
+                response -> showToastShort("Выход успешен"),
                 error -> {
                     showToast("Ошибка при выходе");
                     Log.e("LoginActivity", "Logout Error: " + error.toString());
@@ -98,7 +106,17 @@ public class LoginActivity extends AppCompatActivity {
         Volley.newRequestQueue(getApplicationContext()).add(request);
     }
 
-    // Метод для отображения всплывающего сообщения
+    // Метод для отображения всплывающего сообщения (длинного)
+    private void showToastLong(String message) {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+    }
+
+    // Метод для отображения всплывающего сообщения (короткого)
+    private void showToastShort(String message) {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    // Метод для отображения всплывающего сообщения (стандартного)
     private void showToast(String message) {
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }

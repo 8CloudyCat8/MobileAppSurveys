@@ -20,7 +20,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.android.volley.Request;
-import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.cloudycat.cloudyapp.SecondActivity;
 import com.cloudycat.cloudyapp.databinding.FragmentGalleryBinding;
@@ -48,14 +48,14 @@ public class GalleryFragment extends Fragment {
 
         // Выполнение GET-запроса
         String url = "http://185.20.225.206/api/v1/surveys";
-        JsonArrayRequest request = new JsonArrayRequest(
+        JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
                 url,
                 null,
                 response -> {
                     // Обработка успешного ответа
                     try {
-                        JSONArray jsonArray = response;
+                        JSONArray jsonArray = response.getJSONArray("surveys");
 
                         // Вывод в лог количества опросов
                         Log.d("GalleryFragment", "Количество опросов: " + jsonArray.length());
@@ -66,12 +66,13 @@ public class GalleryFragment extends Fragment {
 
                         Log.d("GalleryFragment", "formattedJson: " + formattedJson);
 
-                        // Вывод в лог id каждого опроса
+                        // Обработка каждого опроса
                         for (int i = 0; i < jsonArray.length(); i++) {
-                            JSONObject surveyInfo = jsonArray.getJSONObject(i).getJSONObject("surveyInfo");
-                            String surveyId = surveyInfo.getString("id");
-                            String surveyName = surveyInfo.getString("name");
-                            String surveyDescription = surveyInfo.getString("description");
+                            JSONObject survey = jsonArray.getJSONObject(i);
+
+                            String surveyId = survey.getString("id");
+                            String surveyName = survey.getString("name");
+                            String surveyDescription = survey.getString("description");
 
                             Log.d("GalleryFragment", "Id опроса " + (i + 1) + ": " + surveyId);
 
@@ -102,7 +103,7 @@ public class GalleryFragment extends Fragment {
                             // Добавление кнопки в контейнер
                             binding.buttonContainer.addView(button, buttonLayoutParams);
 
-                            final int index = i;  // Создание финальной переменной для хранения значения i
+                            final int index = i;
 
                             button.setOnClickListener(view -> {
                                 // Использование финальной переменной внутри лямбда-выражения
@@ -118,18 +119,22 @@ public class GalleryFragment extends Fragment {
                         textView.setText(formattedJson);
                     } catch (Exception e) {
                         e.printStackTrace();
-                        textView.setText("Ошибка обработки данных");
+                        String errorMessage = "Ошибка обработки данных: " + e.getMessage();
+                        Log.e("GalleryFragment", errorMessage);
+                        textView.setText(errorMessage);
                     }
+
                 },
                 error -> {
                     // Обработка ошибки
-                    textView.setText("Ошибка запроса");
+                    String errorMessage = "Ошибка запроса: " + error.getMessage();
+                    Log.e("GalleryFragment", errorMessage);
+                    textView.setText(errorMessage);
                 }
         );
 
         // Добавление запроса в очередь
         Volley.newRequestQueue(requireContext()).add(request);
-
         return root;
     }
     @Override
