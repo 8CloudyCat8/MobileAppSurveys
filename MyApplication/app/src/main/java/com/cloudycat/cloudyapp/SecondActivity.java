@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,30 +35,30 @@ public class SecondActivity extends AppCompatActivity {
         // Получаем данные опроса из интента
         String surveyDataString = getIntent().getStringExtra("surveyData");
 
+        Log.d("SecondActivity", "Survey data: " + surveyDataString);
+
         try {
             // Разбираем JSON-строку в JSONObject
             JSONObject surveyData = new JSONObject(surveyDataString);
 
-            // Извлекаем необходимую информацию из JSONObject
-            JSONObject surveyInfo = surveyData.getJSONObject("surveyInfo");
-            String surveyId = surveyInfo.getString("id");
-            String surveyName = surveyInfo.getString("name");
-            String surveyDescription = surveyInfo.getString("description");
+            // Извлекаем основные данные опроса
+            String surveyId = surveyData.getString("id");
+            String surveyName = surveyData.getString("name");
+            String surveyDescription = surveyData.getString("description");
 
-            // Обновляем TextView деталями опроса
+            // Обновляем TextView с основными данными опроса
             TextView surveyDetailsTextView = findViewById(R.id.surveyDetailsTextView);
             surveyDetailsTextView.setText("ID: " + surveyId + "\nНазвание: " + surveyName + "\nОписание: " + surveyDescription);
 
             // Используем Gson для красивого форматирования JSON
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            String formattedJson = gson.toJson(surveyInfo);
+            String formattedJson = gson.toJson(surveyData);
 
             // Обновляем TextView отформатированным JSON
             TextView surveyAll = findViewById(R.id.surveyAll);
             surveyAll.setText(formattedJson);
 
-            // Получаем массив вопросов
-            JSONArray questionsArray = surveyInfo.getJSONArray("questions");
+            JSONArray questionsArray = surveyData.getJSONArray("questions");
 
             // Контейнер для динамически добавляемых вопросов
             LinearLayout questionContainer = findViewById(R.id.questionContainer);
@@ -69,12 +70,12 @@ public class SecondActivity extends AppCompatActivity {
                 String questionText = questionObject.getString("text");
                 String answerType = questionObject.getString("answer_type");
 
-                // Создаем новый TextView для вопроса
+                // Создаём новый TextView для вопроса
                 TextView questionTextView = new TextView(this);
                 questionTextView.setText(questionText);
                 questionContainer.addView(questionTextView);
 
-                // Создаем элементы UI в зависимости от типа ответа
+                // Создаём элементы UI в зависимости от типа ответа
                 switch (answerType) {
                     case "single_choice":
                         RadioGroup radioGroup = new RadioGroup(this);
@@ -103,11 +104,13 @@ public class SecondActivity extends AppCompatActivity {
                         int maxLength = questionObject.getJSONObject("restrictions").getInt("maxLength");
 
                         // Устанавливаем максимальную длину для EditText
-                        editText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(maxLength)});
+                        editText.setFilters(new InputFilter[] {
+                                new InputFilter.LengthFilter(maxLength)
+                        });
 
                         editText.setHint("Введите ваш ответ здесь");
 
-                        // Создаем TextView для отображения количества символов
+                        // Создаём TextView для отображения количества символов
                         TextView charCountTextView = new TextView(this);
                         charCountTextView.setText("0/" + maxLength);
 
@@ -123,8 +126,7 @@ public class SecondActivity extends AppCompatActivity {
                         // Добавляем TextWatcher к EditText
                         editText.addTextChangedListener(new TextWatcher() {
                             @Override
-                            public void beforeTextChanged(CharSequence charSequence, int start, int before, int count) {
-                            }
+                            public void beforeTextChanged(CharSequence charSequence, int start, int before, int count) {}
 
                             @Override
                             public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
@@ -134,8 +136,7 @@ public class SecondActivity extends AppCompatActivity {
                             }
 
                             @Override
-                            public void afterTextChanged(Editable editable) {
-                            }
+                            public void afterTextChanged(Editable editable) {}
                         });
 
                         // Добавляем EditText в questionContainer
@@ -143,16 +144,16 @@ public class SecondActivity extends AppCompatActivity {
                         break;
 
                     case "slider":
-                        // Создаем LinearLayout для размещения как SeekBar, так и TextView с значением
+                        // Создаём LinearLayout для размещения как SeekBar так и TextView
                         LinearLayout sliderLayout = new LinearLayout(this);
                         sliderLayout.setOrientation(LinearLayout.VERTICAL);
 
-                        // Создаем TextView для отображения текущего значения
+                        // Создаём TextView для отображения текущего значения
                         TextView valueTextView = new TextView(this);
-                        valueTextView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER); // Центрируем текст
-                        valueTextView.setText("0"); // Начальное значение
+                        valueTextView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                        valueTextView.setText("0");
 
-                        // Создаем SeekBar
+                        // Создаём SeekBar
                         SeekBar seekBar = new SeekBar(this);
                         JSONObject restrictionsObject = questionObject.getJSONObject("restrictions");
                         int min = restrictionsObject.getInt("min");
@@ -168,12 +169,10 @@ public class SecondActivity extends AppCompatActivity {
                             }
 
                             @Override
-                            public void onStartTrackingTouch(SeekBar seekBar) {
-                            }
+                            public void onStartTrackingTouch(SeekBar seekBar) {}
 
                             @Override
-                            public void onStopTrackingTouch(SeekBar seekBar) {
-                            }
+                            public void onStopTrackingTouch(SeekBar seekBar) {}
                         });
 
                         // Добавляем TextView с значением над SeekBar
@@ -185,24 +184,18 @@ public class SecondActivity extends AppCompatActivity {
                         // Добавляем макет в основной контейнер
                         questionContainer.addView(sliderLayout);
                         break;
-
                 }
             }
 
             // Добавляем кнопку для отправки результатов
             Button submitBtn = findViewById(R.id.submitBtn);
-            submitBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                }
-            });
+            submitBtn.setOnClickListener(view -> {});
 
         } catch (Exception e) {
             e.printStackTrace();
-
-            // Обрабатываем JSONException (например, выводим сообщение об ошибке)
+            Log.e("SecondActivity", "Error parsing survey data: " + e.getMessage());
             TextView surveyDetailsTextView = findViewById(R.id.surveyDetailsTextView);
-            surveyDetailsTextView.setText("Ошибка при разборе данных опроса");
+            surveyDetailsTextView.setText("Ошибка при разборе данных опроса: " + e.getMessage());
         }
     }
 }
