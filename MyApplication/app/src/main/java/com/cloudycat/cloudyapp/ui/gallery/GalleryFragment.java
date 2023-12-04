@@ -2,6 +2,7 @@ package com.cloudycat.cloudyapp.ui.gallery;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -22,6 +23,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.cloudycat.cloudyapp.R;
 import com.cloudycat.cloudyapp.SecondActivity;
 import com.cloudycat.cloudyapp.databinding.FragmentGalleryBinding;
 import com.google.gson.Gson;
@@ -43,6 +45,16 @@ public class GalleryFragment extends Fragment {
 
         binding = FragmentGalleryBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+
+        int[] colorArray = new int[]{
+                R.color.card1Color,
+                R.color.card4Color,
+                R.color.card5Color,
+                R.color.card8Color,
+                R.color.card9Color,
+                R.color.card11Color,
+                R.color.card12Color
+        };
 
         final TextView textView = binding.textGallery;
 
@@ -79,26 +91,45 @@ public class GalleryFragment extends Fragment {
                             // Создание новой кнопки
                             Button button = new Button(requireContext());
 
+                            // Создание GradientDrawable для фона с скругленными углами
+                            GradientDrawable gradientDrawable = new GradientDrawable();
+                            gradientDrawable.setShape(GradientDrawable.RECTANGLE);
+                            gradientDrawable.setCornerRadii(new float[]{20, 20, 20, 20, 20, 20, 20, 20}); // Установите радиус скругления в пикселях
+
+                            // Случайный цвет для кнопки
+                            int randomColorIndex = (int) (Math.random() * colorArray.length);
+                            int selectedColor = getResources().getColor(colorArray[randomColorIndex]);
+
+                            // Установка цвета фона кнопки
+                            gradientDrawable.setColor(selectedColor);
+
+                            // Установка созданного GradientDrawable в качестве фона кнопки
+                            button.setBackground(gradientDrawable);
+
                             // Создание SpannableString для установки различных стилей текста
                             SpannableString spannableString = new SpannableString(surveyName + "\n" + surveyDescription);
 
-                            // Установка цвета текста имени опроса
-                            spannableString.setSpan(new ForegroundColorSpan(Color.BLACK), 0, surveyName.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            // Установка цвета текста названия опроса
+                            spannableString.setSpan(new ForegroundColorSpan(Color.WHITE), 0, surveyName.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
                             // Установка цвета текста описания опроса
-                            spannableString.setSpan(new ForegroundColorSpan(Color.GRAY), surveyName.length() + 1, spannableString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            spannableString.setSpan(new ForegroundColorSpan(Color.WHITE), surveyName.length() + 1, spannableString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-                            // Установка меньшего размера текста для описания
+                            // Установка увеличенного размера текста для названия опроса
+                            spannableString.setSpan(new RelativeSizeSpan(1.4f), 0, surveyName.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                            // Установка уменьшенного размера текста для описания опроса
                             spannableString.setSpan(new RelativeSizeSpan(0.8f), surveyName.length() + 1, spannableString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
 
                             button.setText(spannableString);
                             button.setId(View.generateViewId()); // Установка уникального ID для кнопки
 
-                            // Настройка параметров макета для кнопки
                             LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(
                                     LinearLayout.LayoutParams.MATCH_PARENT,
                                     LinearLayout.LayoutParams.WRAP_CONTENT
                             );
+                            buttonLayoutParams.setMargins(0, 0, 0, 16); // Add bottom margin for spacing between buttons
 
                             // Добавление кнопки в контейнер
                             binding.buttonContainer.addView(button, buttonLayoutParams);
@@ -110,13 +141,19 @@ public class GalleryFragment extends Fragment {
                                 Intent intent = new Intent(requireContext(), SecondActivity.class);
                                 try {
                                     intent.putExtra("surveyData", jsonArray.getJSONObject(index).toString());
+
+                                    // Передача цвета кнопки в SecondActivity
+                                    intent.putExtra("buttonColor", selectedColor);
                                 } catch (JSONException e) {
                                     throw new RuntimeException(e);
                                 }
                                 startActivity(intent);
                             });
+
+
+                            // Generate a random index to select a color
                         }
-                        textView.setText(formattedJson);
+//                        textView.setText(formattedJson);
                     } catch (Exception e) {
                         e.printStackTrace();
                         String errorMessage = "Ошибка обработки данных: " + e.getMessage();

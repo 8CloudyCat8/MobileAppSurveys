@@ -67,7 +67,6 @@
                     android:text="@string/card2_text"
                     android:gravity="top"
                     android:backgroundTint="@color/card2Color"
-
                     />
 
             </LinearLayout>

@@ -24,28 +24,28 @@
                 android:id="@+id/surveyDetailsTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="основные данные опроса"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:layout_marginTop="16dp"/>
-
-            <!-- весь опрос -->
-            <TextView
-                android:id="@+id/surveyAll"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="весь опрос"
-                android:textSize="18sp"
-                android:textStyle="bold"
                 android:layout_marginTop="16dp"/>
 
             <LinearLayout
                 android:id="@+id/questionContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:layout_marginTop="16dp"> <!-- Добавленный отступ сверху -->
+
             </LinearLayout>
+
+            <!-- весь опрос -->
+            <TextView
+                android:id="@+id/surveyAll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"/>
 
         </LinearLayout>
     </ScrollView>
@@ -60,6 +60,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

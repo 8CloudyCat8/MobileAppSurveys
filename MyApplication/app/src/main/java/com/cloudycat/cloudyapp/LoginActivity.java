@@ -55,8 +55,6 @@ public class LoginActivity extends AppCompatActivity {
         TextView login = (TextView) findViewById(R.id.login_email);
         TextView password = (TextView) findViewById(R.id.login_password);
 
-
-
         View.OnClickListener onClickButtonToMain = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -78,7 +76,6 @@ public class LoginActivity extends AppCompatActivity {
 
         //jsonParams.put("username", "NikitaDolganov@gmail.com");
         //jsonParams.put("password", "NikitaDolganov1");
-
 
     }
     private void sendJsonPostRequest(String login, String password){

@@ -1,6 +1,8 @@
 package com.cloudycat.cloudyapp;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -34,8 +36,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+
 
 public class SecondActivity extends AppCompatActivity {
     public String Id;
@@ -70,7 +71,7 @@ public class SecondActivity extends AppCompatActivity {
 
             // Обновляем TextView отформатированным JSON
             TextView surveyAll = findViewById(R.id.surveyAll);
-            surveyAll.setText(formattedJson);
+//            surveyAll.setText(formattedJson);
 
             JSONArray questionsArray = surveyData.getJSONArray("questions");
 
@@ -84,9 +85,19 @@ public class SecondActivity extends AppCompatActivity {
                 String questionText = questionObject.getString("text");
                 String answerType = questionObject.getString("answer_type");
 
-                // Создаём новый TextView для вопроса
+                // Создаём новый TextView для вопроса с отступом сверху 20px
                 TextView questionTextView = new TextView(this);
                 questionTextView.setText(questionText);
+
+                // Устанавливаем параметры макета с отступом сверху
+                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+                layoutParams.setMargins(10, 50, 0, 0);
+                questionTextView.setLayoutParams(layoutParams);
+
+                // Добавляем TextView в questionContainer
                 questionContainer.addView(questionTextView);
 
                 // Создаём элементы UI в зависимости от типа ответа
@@ -105,13 +116,17 @@ public class SecondActivity extends AppCompatActivity {
                     case "multiple_choice":
                         JSONArray choicesArrayMulti = questionObject.getJSONObject("restrictions").getJSONArray("choices");
                         LinearLayout choicesLayout = new LinearLayout(this);
+                        choicesLayout.setOrientation(LinearLayout.VERTICAL); // Устанавливаем вертикальную ориентацию
+
                         for (int j = 0; j < choicesArrayMulti.length(); j++) {
                             CheckBox checkBox = new CheckBox(this);
                             checkBox.setText(choicesArrayMulti.getString(j));
                             choicesLayout.addView(checkBox);
                         }
+
                         questionContainer.addView(choicesLayout);
                         break;
+
 
                     case "text":
                         EditText editText = new EditText(this);
@@ -167,14 +182,25 @@ public class SecondActivity extends AppCompatActivity {
                         // Создаём TextView для отображения текущего значения
                         TextView valueTextView = new TextView(this);
                         valueTextView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                        valueTextView.setText("0");
+
+                        // Получаем минимальное значение из ограничений
+                        int min = questionObject.getJSONObject("restrictions").getInt("min");
+
+                        // Устанавливаем начальное значение TextView равным минимальному значению
+                        valueTextView.setText(String.valueOf(min));
 
                         // Создаём SeekBar
                         SeekBar seekBar = new SeekBar(this);
-                        JSONObject restrictionsObject = questionObject.getJSONObject("restrictions");
-                        int min = restrictionsObject.getInt("min");
-                        int max = restrictionsObject.getInt("max");
+                        int max = questionObject.getJSONObject("restrictions").getInt("max");
                         seekBar.setMax(max - min);
+
+                        // Получаем идентификатор цвета из ресурсов
+                        int purple200Color = getResources().getColor(R.color.purple_200);
+
+                        // Устанавливаем цвет слайдера
+                        seekBar.getProgressDrawable().setColorFilter(purple200Color, PorterDuff.Mode.SRC_IN);
+                        seekBar.getThumb().setColorFilter(purple200Color, PorterDuff.Mode.SRC_IN);
+
 
                         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                             @Override
@@ -200,6 +226,8 @@ public class SecondActivity extends AppCompatActivity {
                         // Добавляем макет в основной контейнер
                         questionContainer.addView(sliderLayout);
                         break;
+
+
                 }
 
             }
@@ -209,15 +237,12 @@ public class SecondActivity extends AppCompatActivity {
             Button submitBtn = findViewById(R.id.submitBtn);
 
 
-            View.OnClickListener onClickButtonToMain = new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    getAnswers(childCount,questionContainer);
-                    sendJsonPostRequest();
+            View.OnClickListener onClickButtonToMain = view -> {
+                getAnswers(childCount,questionContainer);
+                sendJsonPostRequest();
 
-                    Intent intent = new Intent(SecondActivity.this, MainActivity.class);
-                    startActivity(intent);
-                }
+                Intent intent = new Intent(SecondActivity.this, MainActivity.class);
+                startActivity(intent);
             };
             submitBtn.setOnClickListener(onClickButtonToMain);
 
@@ -253,7 +278,7 @@ public class SecondActivity extends AppCompatActivity {
                         answersArray.put(answer4);
                     }
                 }
-                // ...
+
             }  else if (childView instanceof EditText) {
                 // Обработка EditText
                 EditText editText = (EditText) childView;
@@ -266,7 +291,7 @@ public class SecondActivity extends AppCompatActivity {
                     throw new RuntimeException(e);
                 }
                 answersArray.put(answer1);
-                // ...
+
             } else if (childView instanceof LinearLayout) {
 
                 LinearLayout Layout = (LinearLayout) childView;
@@ -305,7 +330,6 @@ public class SecondActivity extends AppCompatActivity {
                     answersArray.put(answer4);
                 }
             }
-            // ...
         }
         Answers = answersArray;
     }
@@ -318,37 +342,29 @@ public class SecondActivity extends AppCompatActivity {
                     Request.Method.GET,
                     url,
                     null,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
+                    response -> {
 
-                            try {
+                        try {
 
-                                JSONObject userInfo = (JSONObject) response.get("userInfo");
-                                String email = userInfo.get("email").toString();
-                                String gmail = userInfo.get("email").toString();
+                            JSONObject userInfo = (JSONObject) response.get("userInfo");
+                            String email = userInfo.get("email").toString();
+                            String gmail = userInfo.get("email").toString();
 
-                            } catch (JSONException e) {
-                                throw new RuntimeException(e);
-                            }
-                            Toast toast = Toast.makeText(getApplicationContext(), "Запрос отправлен", Toast.LENGTH_SHORT);
-
-                            toast.show();
-
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
                         }
+                        Toast toast = Toast.makeText(getApplicationContext(), "Запрос отправлен", Toast.LENGTH_SHORT);
+
+                        toast.show();
+
                     },
-                    new Response.ErrorListener(){
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
+                    error -> {
 
-                            Toast toast = Toast.makeText(getApplicationContext(),
-                                    error.toString(), Toast.LENGTH_SHORT);
-                            toast.show();
+                        Toast toast = Toast.makeText(getApplicationContext(),
+                                error.toString(), Toast.LENGTH_SHORT);
+                        toast.show();
 
-                        }
                     });
-
-
 
             Volley.newRequestQueue(getApplicationContext()).
                     add(request);
@@ -360,8 +376,6 @@ public class SecondActivity extends AppCompatActivity {
     private void sendJsonPostRequest(){
         String url = "http://185.20.225.206/api/v1/surveys/" + Id + "/answers";
         try {
-
-            // Make new json object and put params in it
             JSONObject jsonParams = new JSONObject();
 
             jsonParams.put("answers", Answers);
@@ -371,36 +385,28 @@ public class SecondActivity extends AppCompatActivity {
                     Request.Method.POST,
                     url,
                     jsonParams,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
+                    response -> {
 
-                            try {
+                        try {
 
-                                JSONObject surveyAnswerInfo = (JSONObject) response.get("surveyAnswerInfo");
-                                String id = surveyAnswerInfo.get("survey_id").toString();
+                            JSONObject surveyAnswerInfo = (JSONObject) response.get("surveyAnswerInfo");
+                            String id = surveyAnswerInfo.get("survey_id").toString();
 
-                            } catch (JSONException e) {
-                                throw new RuntimeException(e);
-                            }
-                            Toast toast = Toast.makeText(getApplicationContext(), "Запрос отправлен", Toast.LENGTH_SHORT);
-
-                            toast.show();
-
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
                         }
+                        Toast toast = Toast.makeText(getApplicationContext(), "Запрос отправлен", Toast.LENGTH_SHORT);
+
+                        toast.show();
+
                     },
-                    new Response.ErrorListener(){
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
+                    error -> {
 
-                            Toast toast = Toast.makeText(getApplicationContext(),
-                                    error.toString(), Toast.LENGTH_SHORT);
-                            toast.show();
+                        Toast toast = Toast.makeText(getApplicationContext(),
+                                error.toString(), Toast.LENGTH_SHORT);
+                        toast.show();
 
-                        }
                     });
-
-
 
             Volley.newRequestQueue(getApplicationContext()).
                     add(request);

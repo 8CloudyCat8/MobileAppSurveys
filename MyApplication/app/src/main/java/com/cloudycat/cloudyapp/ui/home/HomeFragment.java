@@ -28,26 +28,15 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        binding.card1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getActivity(), SecondActivity.class);
-                startActivity(intent);
-            }
+        binding.card1.setOnClickListener(view12 -> {
+            Intent intent = new Intent(getActivity(), SecondActivity.class);
+            startActivity(intent);
         });
 
-        binding.card2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                MediaPlayer mediaPlayer = MediaPlayer.create(requireContext(), R.raw.click_sound);
-                mediaPlayer.start();
-                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                    @Override
-                    public void onCompletion(MediaPlayer mp) {
-                        mediaPlayer.release();
-                    }
-                });
-            }
+        binding.card2.setOnClickListener(view1 -> {
+            MediaPlayer mediaPlayer = MediaPlayer.create(requireContext(), R.raw.click_sound);
+            mediaPlayer.start();
+            mediaPlayer.setOnCompletionListener(mp -> mediaPlayer.release());
         });
     }
 
