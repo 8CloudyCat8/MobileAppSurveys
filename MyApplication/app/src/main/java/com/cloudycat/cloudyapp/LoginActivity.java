@@ -1,123 +1,162 @@
 package com.cloudycat.cloudyapp;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
+
+
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.material.button.MaterialButton;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
+
 public class LoginActivity extends AppCompatActivity {
-    public static String FirstName, LastName, ID, Email, Phone; // Переменные для хранения данных пользователя
+    public static String FirstName;
+    public String LastName;
+    public String ID;
+    public String Email;
+    public String Phone;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        MaterialButton buttonToLogin = findViewById(R.id.buttonToLogin); // Кнопка для входа
-        MaterialButton buttonLogout = findViewById(R.id.buttonLogout); // Кнопка для выхода
-        TextView login = findViewById(R.id.login_email); // Поле ввода логина
-        TextView password = findViewById(R.id.login_password); // Поле ввода пароля
+        MaterialButton buttonOnMain = (MaterialButton)  findViewById(R.id.buttonToLogin);
+        TextView login = (TextView) findViewById(R.id.login_email);
+        TextView password = (TextView) findViewById(R.id.login_password);
 
-        // Автоматическое заполнение полей email и password
-        login.setText("test@gmail.com");
-        password.setText("testtest");
 
-        buttonToLogin.setOnClickListener(view -> {
-            if (login.getText().toString().isEmpty() || password.getText().toString().isEmpty()) {
-                showToast("Данные не заполнены");
-                return;
+
+        View.OnClickListener onClickButtonToMain = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (login.getText().toString().isEmpty() && password.getText().toString().isEmpty()) {
+                    Toast toast = Toast.makeText(getApplicationContext(),
+                            "Данные не заполнены", Toast.LENGTH_SHORT);
+                    toast.show();
+                    return;
+                }
+                String url2 = "http://185.20.225.206/api/v1/login";
+
+                sendJsonPostRequest(login.getText().toString(), password.getText().toString());
+
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                startActivity(intent);
             }
-            sendJsonPostRequest(login.getText().toString(), password.getText().toString());
-            startActivity(new Intent(LoginActivity.this, MainActivity.class));
-        });
+        };
+        buttonOnMain.setOnClickListener(onClickButtonToMain);
 
-        buttonLogout.setOnClickListener(view -> {
-            sendLogoutRequest();
-        });
+        //jsonParams.put("username", "NikitaDolganov@gmail.com");
+        //jsonParams.put("password", "NikitaDolganov1");
+
+
     }
-
-    // Метод для отправки POST-запроса с данными пользователя
-    private void sendJsonPostRequest(String login, String password) {
+    private void sendJsonPostRequest(String login, String password){
         try {
+            CookieManager cookieManager = new CookieManager();
+            CookieHandler.setDefault(cookieManager);
+            // Make new json object and put params in it
             JSONObject jsonParams = new JSONObject();
+
             jsonParams.put("username", login);
             jsonParams.put("password", password);
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
+
                     "http://185.20.225.206/api/v1/login",
                     jsonParams,
-                    response -> {
-                        try {
-                            JSONObject userInfo = response.getJSONObject("userInfo");
-                            FirstName = userInfo.getString("firstName");
-                            LastName = userInfo.getString("lastName");
-                            Email = userInfo.getString("email");
-                            ID = userInfo.getString("id");
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
 
-                            // Журналирование информации о пользователе
-                            Log.d("LoginActivity", "FirstName: " + FirstName);
-                            Log.d("LoginActivity", "LastName: " + LastName);
-                            Log.d("LoginActivity", "Email: " + Email);
-                            Log.d("LoginActivity", "ID: " + ID);
+                            String firstName;
+                            String lastName;
+                            String email;
+                            String id;
+                            String phone;
+                            JSONObject userInfo;
+                            JSONObject additionalDetails;
+                            JSONObject additionalDetails1;
+                            try {
+                                userInfo = (JSONObject) response.get("userInfo");
+                                additionalDetails = (JSONObject) userInfo.get("additionalDetails");
 
-                            showToastLong("Привет, " + FirstName + " " + LastName);
-                            showToastShort("Email: " + Email);
-                            showToastShort("ID: " + ID);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            showToast("Ошибка обработки данных");
+
+                            } catch (JSONException e) {
+                                throw new RuntimeException(e);
+                            }
+                            try {
+                                firstName = additionalDetails.get("firstName").toString();
+                                lastName = additionalDetails.get("lastName").toString();
+                                email = userInfo.get("email").toString();
+                                id = userInfo.get("id").toString();
+                            } catch (JSONException e) {
+                                throw new RuntimeException(e);
+                            }
+                            FirstName= firstName;
+                            LastName= lastName;
+                            Email = email;
+                            ID = id;
+
+                            Toast toast = Toast.makeText(getApplicationContext(), "Привет, "+FirstName + " " + LastName, Toast.LENGTH_SHORT);
+
+                            toast.show();
                         }
-
                     },
-                    error -> {
-                        showToast("Неверный логин или пароль");
-                        Log.e("LoginActivity", "Error: " + error.toString());
-                    }
-            );
 
-            Volley.newRequestQueue(getApplicationContext()).add(request);
-        } catch (JSONException ex) {
-            showToast(ex.toString());
+                    new Response.ErrorListener(){
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+
+                            Toast toast = Toast.makeText(getApplicationContext(),
+                                    "Неверный логин или пароль", Toast.LENGTH_SHORT);
+                            toast.show();
+
+                        }
+                    });
+
+
+            Volley.newRequestQueue(getApplicationContext()).
+                    add(request);
+
+
+
+        } catch(JSONException ex){
+            Toast toast = Toast.makeText(getApplicationContext(),
+                    ex.toString(), Toast.LENGTH_SHORT);
+            toast.show();
         }
-    }
 
-    // Метод для отправки запроса на выход
-    private void sendLogoutRequest() {
-        JsonObjectRequest request = new JsonObjectRequest(
-                Request.Method.GET,
-                "http://185.20.225.206/api/v1/logout",
-                null,
-                response -> showToastShort("Выход успешен"),
-                error -> {
-                    showToast("Ошибка при выходе");
-                    Log.e("LoginActivity", "Logout Error: " + error.toString());
-                }
-        );
-
-        Volley.newRequestQueue(getApplicationContext()).add(request);
-    }
-
-    // Метод для отображения всплывающего сообщения (длинного)
-    private void showToastLong(String message) {
-        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-    }
-
-    // Метод для отображения всплывающего сообщения (короткого)
-    private void showToastShort(String message) {
-        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-    }
-
-    // Метод для отображения всплывающего сообщения (стандартного)
-    private void showToast(String message) {
-        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 }
