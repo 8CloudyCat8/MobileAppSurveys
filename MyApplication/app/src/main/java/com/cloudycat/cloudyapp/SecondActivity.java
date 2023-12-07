@@ -226,8 +226,6 @@ public class SecondActivity extends AppCompatActivity {
                         // Добавляем макет в основной контейнер
                         questionContainer.addView(sliderLayout);
                         break;
-
-
                 }
 
             }
