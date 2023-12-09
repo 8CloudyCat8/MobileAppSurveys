@@ -1,7 +1,5 @@
 package com.cloudycat.cloudyapp;
 
-import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.text.Editable;
@@ -24,8 +22,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
@@ -71,7 +67,7 @@ public class SecondActivity extends AppCompatActivity {
 
             // Обновляем TextView отформатированным JSON
             TextView surveyAll = findViewById(R.id.surveyAll);
-//            surveyAll.setText(formattedJson);
+            surveyAll.setText(formattedJson);
 
             JSONArray questionsArray = surveyData.getJSONArray("questions");
 
@@ -84,6 +80,13 @@ public class SecondActivity extends AppCompatActivity {
                 // Извлекаем детали вопроса
                 String questionText = questionObject.getString("text");
                 String answerType = questionObject.getString("answer_type");
+                boolean isRequired = questionObject.getBoolean("required");
+
+                // Проверяем, является ли ответ обязательным
+                if (isRequired) {
+                    // Если ответ обязателен, добавляем звездочку к имени вопроса
+                    questionText = questionText + " (Обязательно)";
+                }
 
                 // Создаём новый TextView для вопроса с отступом сверху 20px
                 TextView questionTextView = new TextView(this);
@@ -127,52 +130,62 @@ public class SecondActivity extends AppCompatActivity {
                         questionContainer.addView(choicesLayout);
                         break;
 
-
                     case "text":
                         EditText editText = new EditText(this);
 
-                        // Получаем значение maxLength из ограничений
-                        int maxLength = questionObject.getJSONObject("restrictions").getInt("maxLength");
+                        // Получаем объект ограничений
+                        JSONObject restrictionsObject = questionObject.optJSONObject("restrictions");
+
+                        // Устанавливаем максимальную длину для EditText (если "maxLength" равно null, устанавливаем без ограничений)
+                        int maxLength = (restrictionsObject != null && !restrictionsObject.isNull("maxLength"))
+                                ? restrictionsObject.getInt("maxLength")
+                                : Integer.MAX_VALUE; // Set to a large positive value
 
                         // Устанавливаем максимальную длину для EditText
-                        editText.setFilters(new InputFilter[] {
+                        editText.setFilters(new InputFilter[]{
                                 new InputFilter.LengthFilter(maxLength)
                         });
 
                         editText.setHint("Введите ваш ответ здесь");
 
-                        // Создаём TextView для отображения количества символов
-                        TextView charCountTextView = new TextView(this);
-                        charCountTextView.setText("0/" + maxLength);
+                        // Если maxLength не установлен, не добавляем TextView для отображения количества символов
+                        if (maxLength != Integer.MAX_VALUE) {
+                            // Создаём TextView для отображения количества символов
+                            TextView charCountTextView = new TextView(this);
+                            charCountTextView.setText("0/" + maxLength);
 
-                        // Устанавливаем Gravity для центрирования текста в TextView
-                        charCountTextView.setGravity(Gravity.CENTER);
+                            // Устанавливаем Gravity для центрирования текста в TextView
+                            charCountTextView.setGravity(Gravity.CENTER);
 
-                        // Добавляем TextView в questionContainer
-                        questionContainer.addView(charCountTextView, new LinearLayout.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.WRAP_CONTENT
-                        ));
+                            // Добавляем TextView в questionContainer
+                            questionContainer.addView(charCountTextView, new LinearLayout.LayoutParams(
+                                    ViewGroup.LayoutParams.MATCH_PARENT,
+                                    ViewGroup.LayoutParams.WRAP_CONTENT
+                            ));
 
-                        // Добавляем TextWatcher к EditText
-                        editText.addTextChangedListener(new TextWatcher() {
-                            @Override
-                            public void beforeTextChanged(CharSequence charSequence, int start, int before, int count) {}
+                            // Добавляем TextWatcher к EditText
+                            editText.addTextChangedListener(new TextWatcher() {
+                                @Override
+                                public void beforeTextChanged(CharSequence charSequence, int start, int before, int count) {
+                                }
 
-                            @Override
-                            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
-                                // Обновляем TextView с количеством символов
-                                int currentLength = charSequence.length();
-                                charCountTextView.setText(currentLength + "/" + maxLength);
-                            }
+                                @Override
+                                public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
+                                    // Обновляем TextView с количеством символов
+                                    int currentLength = charSequence.length();
+                                    charCountTextView.setText(currentLength + "/" + maxLength);
+                                }
 
-                            @Override
-                            public void afterTextChanged(Editable editable) {}
-                        });
+                                @Override
+                                public void afterTextChanged(Editable editable) {
+                                }
+                            });
+                        }
 
                         // Добавляем EditText в questionContainer
                         questionContainer.addView(editText);
                         break;
+
 
                     case "slider":
                         // Создаём LinearLayout для размещения как SeekBar так и TextView
@@ -236,12 +249,11 @@ public class SecondActivity extends AppCompatActivity {
 
 
             View.OnClickListener onClickButtonToMain = view -> {
-                getAnswers(childCount,questionContainer);
+                getAnswers(childCount, questionContainer);
                 sendJsonPostRequest();
-
-                Intent intent = new Intent(SecondActivity.this, MainActivity.class);
-                startActivity(intent);
+                finish();
             };
+
             submitBtn.setOnClickListener(onClickButtonToMain);
 
         } catch (Exception e) {
@@ -332,45 +344,6 @@ public class SecondActivity extends AppCompatActivity {
         Answers = answersArray;
     }
 
-    private void test(){
-        String url = "http://185.20.225.206/api/v1/me";
-        try {
-
-            JsonObjectRequest request = new JsonObjectRequest(
-                    Request.Method.GET,
-                    url,
-                    null,
-                    response -> {
-
-                        try {
-
-                            JSONObject userInfo = (JSONObject) response.get("userInfo");
-                            String email = userInfo.get("email").toString();
-                            String gmail = userInfo.get("email").toString();
-
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
-                        }
-                        Toast toast = Toast.makeText(getApplicationContext(), "Запрос отправлен", Toast.LENGTH_SHORT);
-
-                        toast.show();
-
-                    },
-                    error -> {
-
-                        Toast toast = Toast.makeText(getApplicationContext(),
-                                error.toString(), Toast.LENGTH_SHORT);
-                        toast.show();
-
-                    });
-
-            Volley.newRequestQueue(getApplicationContext()).
-                    add(request);
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
     private void sendJsonPostRequest(){
         String url = "http://185.20.225.206/api/v1/surveys/" + Id + "/answers";
         try {
@@ -378,6 +351,8 @@ public class SecondActivity extends AppCompatActivity {
 
             jsonParams.put("answers", Answers);
             jsonParams.put("polling_time", 120);
+
+            Log.d("JSON Params", jsonParams.toString());
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,

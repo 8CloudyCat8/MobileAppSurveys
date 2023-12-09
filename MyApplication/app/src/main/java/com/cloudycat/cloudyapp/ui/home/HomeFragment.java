@@ -27,17 +27,6 @@ public class HomeFragment extends Fragment {
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        binding.card1.setOnClickListener(view12 -> {
-            Intent intent = new Intent(getActivity(), SecondActivity.class);
-            startActivity(intent);
-        });
-
-        binding.card2.setOnClickListener(view1 -> {
-            MediaPlayer mediaPlayer = MediaPlayer.create(requireContext(), R.raw.click_sound);
-            mediaPlayer.start();
-            mediaPlayer.setOnCompletionListener(mp -> mediaPlayer.release());
-        });
     }
 
     @Override
