@@ -1,5 +1,6 @@
 package com.cloudycat.cloudyapp.ui.gallery;
 
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.Color;
@@ -9,7 +10,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.SpannableString;
-import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
@@ -18,6 +18,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -35,18 +36,16 @@ import com.android.volley.toolbox.Volley;
 import com.cloudycat.cloudyapp.R;
 import com.cloudycat.cloudyapp.SecondActivity;
 import com.cloudycat.cloudyapp.databinding.FragmentGalleryBinding;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.Random;
 
 public class GalleryFragment extends Fragment {
 
@@ -143,12 +142,55 @@ public class GalleryFragment extends Fragment {
     }
 
     private void createCategoryViews(List<String> categoriesList, List<Integer> categoryColors, JSONArray jsonArray) throws JSONException {
+        // Mapping of categories to emojis
+        Map<String, String> categoryEmojis = new HashMap<>();
+        categoryEmojis.put("Без категории", "🌟");
+        categoryEmojis.put("Образование", "📚");
+        categoryEmojis.put("Здоровье", "⚕️");
+        categoryEmojis.put("Документы", "📝");
+        categoryEmojis.put("Питание", "🍲");
+        categoryEmojis.put("Строительство", "🏗️");
+        categoryEmojis.put("Домашнее хозяйство", "🏡");
+        categoryEmojis.put("Ремонт", "🔧");
+        categoryEmojis.put("Красота", "💅");
+        categoryEmojis.put("Стиль", "👗");
+        categoryEmojis.put("Мода", "🕶️");
+        categoryEmojis.put("Косметика", "💄");
+        categoryEmojis.put("Соц.сети", "📱");
+        categoryEmojis.put("Реклама", "📢");
+        categoryEmojis.put("Технологии", "🔧");
+        categoryEmojis.put("Саморазвитие", "📘");
+        categoryEmojis.put("Хобби", "🎨");
+        categoryEmojis.put("Развлечение", "🎮");
+        categoryEmojis.put("Корея", "🇰🇷");
+        categoryEmojis.put("Рестораны", "🍽️");
+        categoryEmojis.put("Кафе", "☕");
+        categoryEmojis.put("Отдых", "🌴");
+        categoryEmojis.put("Путешествия", "✈️");
+        categoryEmojis.put("Агрегатор опросов", "📊");
+        categoryEmojis.put("Триангуляция", "🔼");
+
+        // Default emoji for categories not present in the map
+        String defaultEmoji = "⚪";
+
         for (int k = 0; k < categoriesList.size(); k++) {
             String category = categoriesList.get(k);
             int categoryColor = categoryColors.get(k);
 
-            TextView categoryText = createCategoryTextView(category, categoryColor);
+            // Get the emoji for the current category or use the default emoji
+            String emoji = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                emoji = categoryEmojis.getOrDefault(category, defaultEmoji);
+            }
+
+            // Add emoji to the category name
+            String categoryWithEmoji = emoji + " " + category;
+
+            TextView categoryText = createCategoryTextView(categoryWithEmoji, categoryColor);
             binding.buttonContainer.addView(categoryText);
+
+            // Add margin after the category name
+            addMarginView();
 
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject survey = jsonArray.getJSONObject(i);
@@ -161,8 +203,18 @@ public class GalleryFragment extends Fragment {
                 }
             }
 
-            addMarginView();
+            addFinalMarginView(); // Add additional margin after the last button in the category
         }
+    }
+
+    private void addFinalMarginView() {
+        int finalMarginBottom = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, getResources().getDisplayMetrics()); // Увеличиваем отступ
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        params.setMargins(0, 0, 0, finalMarginBottom);
+        binding.buttonContainer.addView(new View(requireContext()), params);
     }
 
     private TextView createCategoryTextView(String category, int categoryColor) {
@@ -175,7 +227,7 @@ public class GalleryFragment extends Fragment {
     }
 
     private void addSeparatorView() {
-        int buttonMarginBottom = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5, getResources().getDisplayMetrics());
+        int buttonMarginBottom = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6, getResources().getDisplayMetrics());
         LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -185,7 +237,7 @@ public class GalleryFragment extends Fragment {
     }
 
     private void addMarginView() {
-        int marginBottom = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, getResources().getDisplayMetrics());
+        int marginBottom = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5, getResources().getDisplayMetrics()); // Уменьшаем отступ
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -193,6 +245,7 @@ public class GalleryFragment extends Fragment {
         params.setMargins(0, 0, 0, marginBottom);
         binding.buttonContainer.addView(new View(requireContext()), params);
     }
+
 
     private void createButtonForSurvey(JSONObject survey, int index, int categoryColor) throws JSONException {
         String surveyName = survey.getString("name");
@@ -222,14 +275,53 @@ public class GalleryFragment extends Fragment {
         animateButton(button, index);
 
         button.setOnClickListener(view -> {
-            Intent intent = new Intent(requireContext(), SecondActivity.class);
+            // Get the survey ID from the current survey JSONObject
+            String surveyId;
             try {
-                intent.putExtra("surveyData", survey.toString());
-                startActivity(intent);
-            } catch (Exception e) {
+                surveyId = survey.getString("id");
+            } catch (JSONException e) {
                 e.printStackTrace();
+                return;
             }
+
+            // Log the survey ID before making the network request
+            Log.d("SurveyButton", "Survey ID: " + surveyId);
+
+            // Create a new JsonObjectRequest to fetch survey details by ID
+            String apiUrl = "http://185.20.225.206/api/v1/surveys/" + surveyId;
+            JsonObjectRequest surveyDetailsRequest = new JsonObjectRequest(
+                    Request.Method.GET,
+                    apiUrl,
+                    null,
+                    response -> {
+                        // Log the survey details before starting SecondActivity
+                        Log.d("SurveyButton", "Survey Details Response: " + response.toString());
+
+                        // Handle the successful response and start SecondActivity with the survey details
+                        Intent intent = new Intent(requireContext(), SecondActivity.class);
+                        try {
+                            // Add the survey details to the intent
+                            intent.putExtra("surveyData", response.toString());
+                            intent.putExtra("buttonColor", categoryColor);
+
+                            startActivity(intent);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    },
+                    error -> {
+                        // Log the error if the network request fails
+                        Log.e("SurveyButton", "Error fetching survey details: " + error.toString());
+
+                        // Handle the error response, if needed
+                        error.printStackTrace();
+                    }
+            );
+
+            // Add the request to the Volley queue to execute it
+            Volley.newRequestQueue(requireContext()).add(surveyDetailsRequest);
         });
+
     }
 
     private void animateButton(Button button, int index) {
@@ -237,15 +329,30 @@ public class GalleryFragment extends Fragment {
         button.setAlpha(0f);
 
         // Задержка перед началом анимации каждой кнопки
-        int delay = index * 100; // Измените значение, чтобы настроить задержку
+        int delay = index * 200; // Измените значение, чтобы настроить задержку
+
+        // Определение стороны, с которой вылетает кнопка (чередуется между левой и правой)
+        boolean fromLeft = index % 2 == 0;
 
         // Запуск анимации на главном потоке
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            // Анимация прозрачности
             ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(button, "alpha", 0f, 1f);
             alphaAnimator.setDuration(500); // Измените значение, чтобы настроить длительность анимации
-            alphaAnimator.start();
+
+            // Анимация трансляции (вылетание) - слева или справа
+            float startX = fromLeft ? -button.getWidth() : button.getWidth();
+            ObjectAnimator translationAnimator = ObjectAnimator.ofFloat(button, "translationX", startX, 0);
+            translationAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+            translationAnimator.setDuration(500); // Измените значение, чтобы настроить длительность анимации
+
+            // Комбинированная анимация
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(alphaAnimator, translationAnimator);
+            animatorSet.start();
         }, delay);
     }
+
 
     @Override
     public void onDestroyView() {

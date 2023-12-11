@@ -1,6 +1,7 @@
 package com.cloudycat.cloudyapp;
 
 import android.graphics.PorterDuff;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -9,6 +10,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -42,24 +44,34 @@ public class SecondActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
 
+        int buttonColor = getIntent().getIntExtra("buttonColor", 0);
+
         // Получаем данные опроса из интента
         String surveyDataString = getIntent().getStringExtra("surveyData");
 
         Log.d("SecondActivity", "Survey data: " + surveyDataString);
+
+        // Set the status bar color
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.setStatusBarColor(buttonColor);
+        }
 
         try {
             // Разбираем JSON-строку в JSONObject
             JSONObject surveyData = new JSONObject(surveyDataString);
 
             // Извлекаем основные данные опроса
-            String surveyId = surveyData.getString("id");
+            JSONObject surveyInfo = surveyData.getJSONObject("surveyInfo");
+            String surveyId = surveyInfo.getString("id");
             Id = surveyId;
-            String surveyName = surveyData.getString("name");
-            String surveyDescription = surveyData.getString("description");
+            String surveyName = surveyInfo.getString("name");
+            String surveyDescription = surveyInfo.getString("description");
 
             // Обновляем TextView с основными данными опроса
             TextView surveyDetailsTextView = findViewById(R.id.surveyDetailsTextView);
-            surveyDetailsTextView.setText("ID: " + surveyId + "\nНазвание: " + surveyName + "\nОписание: " + surveyDescription);
+            surveyDetailsTextView.setTextColor(buttonColor);
+            surveyDetailsTextView.setText(surveyName + "\n\n" + surveyDescription);
 
             // Используем Gson для красивого форматирования JSON
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -69,7 +81,8 @@ public class SecondActivity extends AppCompatActivity {
             TextView surveyAll = findViewById(R.id.surveyAll);
             surveyAll.setText(formattedJson);
 
-            JSONArray questionsArray = surveyData.getJSONArray("questions");
+            // Извлекаем массив вопросов
+            JSONArray questionsArray = surveyInfo.getJSONArray("questions");
 
             // Контейнер для динамически добавляемых вопросов
             LinearLayout questionContainer = findViewById(R.id.questionContainer);
@@ -207,12 +220,11 @@ public class SecondActivity extends AppCompatActivity {
                         int max = questionObject.getJSONObject("restrictions").getInt("max");
                         seekBar.setMax(max - min);
 
-                        // Получаем идентификатор цвета из ресурсов
-                        int purple200Color = getResources().getColor(R.color.purple_200);
+
 
                         // Устанавливаем цвет слайдера
-                        seekBar.getProgressDrawable().setColorFilter(purple200Color, PorterDuff.Mode.SRC_IN);
-                        seekBar.getThumb().setColorFilter(purple200Color, PorterDuff.Mode.SRC_IN);
+                        seekBar.getProgressDrawable().setColorFilter(buttonColor, PorterDuff.Mode.SRC_IN);
+                        seekBar.getThumb().setColorFilter(buttonColor, PorterDuff.Mode.SRC_IN);
 
 
                         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -246,7 +258,7 @@ public class SecondActivity extends AppCompatActivity {
 
             // Добавляем кнопку для отправки результатов
             Button submitBtn = findViewById(R.id.submitBtn);
-
+            submitBtn.setBackgroundColor(buttonColor);
 
             View.OnClickListener onClickButtonToMain = view -> {
                 getAnswers(childCount, questionContainer);
