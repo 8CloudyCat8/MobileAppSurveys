@@ -36,4 +36,21 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_login">LoginActivity</string>
 
+    <string-array name="education_array">
+        <item>Нет образования</item>
+        <item>Основное общее</item>
+        <item>Среднее общее</item>
+        <item>Среднее профессиональное</item>
+        <item>Высшее, бакалавр</item>
+        <item>Высшее, магистр</item>
+        <item>Высшая квалификация</item>
+    </string-array>
+
+    <string-array name="familyStatus_array">
+        <item>Не замужем / Не женат</item>
+        <item>Замужем / Женат</item>
+        <item>Разведен / Разведена</item>
+        <item>Вдовец / Вдова</item>
+    </string-array>
+
 </resources>
