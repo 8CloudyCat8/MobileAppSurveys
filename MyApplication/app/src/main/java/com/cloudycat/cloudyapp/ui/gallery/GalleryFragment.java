@@ -2,8 +2,12 @@ package com.cloudycat.cloudyapp.ui.gallery;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
@@ -15,13 +19,18 @@ import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -36,6 +45,10 @@ import com.android.volley.toolbox.Volley;
 import com.cloudycat.cloudyapp.R;
 import com.cloudycat.cloudyapp.SecondActivity;
 import com.cloudycat.cloudyapp.databinding.FragmentGalleryBinding;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.button.MaterialButton;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -51,6 +64,11 @@ public class GalleryFragment extends Fragment {
 
     private FragmentGalleryBinding binding;
     private SwipeRefreshLayout swipeRefreshLayout;
+
+    JSONArray jsonArray = new JSONArray();
+    List<Integer> categoryColors = new ArrayList<>();
+    private final List<String> categoriesList = new ArrayList<>();
+    private final List<String> selectedCategories = new ArrayList<>();
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -69,19 +87,17 @@ public class GalleryFragment extends Fragment {
                 ViewGroup.LayoutParams.MATCH_PARENT
         ));
 
-        // Добавляем существующий корневой макет в SwipeRefreshLayout
         swipeRefreshLayout.addView(root);
 
-        // Устанавливаем слушатель обновления для SwipeRefreshLayout
         swipeRefreshLayout.setOnRefreshListener(() -> {
-            // Выполнение GET-запроса при обновлении страницы
             fetchData();
         });
 
-        // Выполнение GET-запроса при создании фрагмента
         fetchData();
 
-        // Возвращаем SwipeRefreshLayout в качестве корневого макета
+        Button btnFilters = root.findViewById(R.id.btnFilters);
+        btnFilters.setOnClickListener(view -> showBottomSheet(categoriesList));
+
         return swipeRefreshLayout;
     }
 
@@ -96,12 +112,15 @@ public class GalleryFragment extends Fragment {
         );
 
         Volley.newRequestQueue(requireContext()).add(request);
+
+        categoriesList.clear();
     }
+
 
     private void handleResponse(JSONObject response) {
         try {
             binding.buttonContainer.removeAllViews();
-            JSONArray jsonArray = response.getJSONArray("surveys");
+            jsonArray = response.getJSONArray("surveys");
             setupCategories(jsonArray);
             swipeRefreshLayout.setRefreshing(false);
         } catch (Exception e) {
@@ -110,8 +129,6 @@ public class GalleryFragment extends Fragment {
     }
 
     private void setupCategories(JSONArray jsonArray) throws JSONException {
-        List<String> categoriesList = new ArrayList<>();
-        List<Integer> categoryColors = new ArrayList<>();
         int[] colorArray = new int[]{R.color.card1Color, R.color.card4Color, R.color.card5Color,
                 R.color.card8Color, R.color.card9Color, R.color.card11Color, R.color.card12Color};
 
@@ -275,7 +292,6 @@ public class GalleryFragment extends Fragment {
         animateButton(button, index);
 
         button.setOnClickListener(view -> {
-            // Get the survey ID from the current survey JSONObject
             String surveyId;
             try {
                 surveyId = survey.getString("id");
@@ -284,17 +300,14 @@ public class GalleryFragment extends Fragment {
                 return;
             }
 
-            // Log the survey ID before making the network request
             Log.d("SurveyButton", "Survey ID: " + surveyId);
 
-            // Create a new JsonObjectRequest to fetch survey details by ID
             String apiUrl = "http://185.20.225.206/api/v1/surveys/" + surveyId;
             JsonObjectRequest surveyDetailsRequest = new JsonObjectRequest(
                     Request.Method.GET,
                     apiUrl,
                     null,
                     response -> {
-                        // Log the survey details before starting SecondActivity
                         Log.d("SurveyButton", "Survey Details Response: " + response.toString());
 
                         // Handle the successful response and start SecondActivity with the survey details
@@ -310,49 +323,277 @@ public class GalleryFragment extends Fragment {
                         }
                     },
                     error -> {
-                        // Log the error if the network request fails
                         Log.e("SurveyButton", "Error fetching survey details: " + error.toString());
 
-                        // Handle the error response, if needed
                         error.printStackTrace();
                     }
             );
 
-            // Add the request to the Volley queue to execute it
             Volley.newRequestQueue(requireContext()).add(surveyDetailsRequest);
         });
 
     }
 
     private void animateButton(Button button, int index) {
-        // Начальное значение прозрачности
         button.setAlpha(0f);
 
-        // Задержка перед началом анимации каждой кнопки
-        int delay = index * 200; // Измените значение, чтобы настроить задержку
+        int delay = index * 20;
 
-        // Определение стороны, с которой вылетает кнопка (чередуется между левой и правой)
         boolean fromLeft = index % 2 == 0;
 
-        // Запуск анимации на главном потоке
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            // Анимация прозрачности
             ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(button, "alpha", 0f, 1f);
-            alphaAnimator.setDuration(500); // Измените значение, чтобы настроить длительность анимации
+            alphaAnimator.setDuration(500);
 
-            // Анимация трансляции (вылетание) - слева или справа
             float startX = fromLeft ? -button.getWidth() : button.getWidth();
             ObjectAnimator translationAnimator = ObjectAnimator.ofFloat(button, "translationX", startX, 0);
             translationAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
-            translationAnimator.setDuration(500); // Измените значение, чтобы настроить длительность анимации
+            translationAnimator.setDuration(500);
 
-            // Комбинированная анимация
             AnimatorSet animatorSet = new AnimatorSet();
             animatorSet.playTogether(alphaAnimator, translationAnimator);
             animatorSet.start();
         }, delay);
     }
 
+    private void showBottomSheet(List<String> categoriesList) {
+        boolean[] checkedItems = new boolean[categoriesList.size()];
+
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(requireContext());
+
+        ScrollView scrollView = new ScrollView(requireContext());
+        scrollView.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+
+        LinearLayout layout = new LinearLayout(requireContext());
+        layout.setOrientation(LinearLayout.VERTICAL);
+
+        final int buttonsPerRow = 3;
+        final int buttonPadding = 10;
+
+        for (int i = 0; i < categoriesList.size(); i += buttonsPerRow) {
+            LinearLayout rowLayout = new LinearLayout(requireContext());
+            rowLayout.setOrientation(LinearLayout.HORIZONTAL);
+            rowLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT));
+
+            for (int j = 0; j < buttonsPerRow && (i + j) < categoriesList.size(); j++) {
+                LinearLayout itemLayout = new LinearLayout(requireContext());
+                itemLayout.setOrientation(LinearLayout.VERTICAL);
+                itemLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                        0,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        1.0f));
+
+                ImageView imageView = new ImageView(requireContext());
+
+                String currentCategory = categoriesList.get(i + j);
+                Log.d("Category", "Current category: " + currentCategory);
+
+
+                if (currentCategory.equals("Образование")) {
+                    Picasso.get().load(R.drawable.education).into(imageView);
+                } else if (currentCategory.equals("Без категории")) {
+                    Picasso.get().load(R.drawable.nocategory).into(imageView);
+                } else if (currentCategory.equals("Ремонт")) {
+                    Picasso.get().load(R.drawable.tool).into(imageView);
+                } else if (currentCategory.equals("Питание")) {
+                    Picasso.get().load(R.drawable.food).into(imageView);
+                } else if (currentCategory.equals("Здоровье")) {
+                    Picasso.get().load(R.drawable.health).into(imageView);
+                } else if (currentCategory.equals("Документы")) {
+                    Picasso.get().load(R.drawable.docs).into(imageView);
+                } else if (currentCategory.equals("Строительство")) {
+                    Picasso.get().load(R.drawable.build).into(imageView);
+                } else if (currentCategory.equals("Домашнее хозяйство")) {
+                    Picasso.get().load(R.drawable.household).into(imageView);
+                } else if (currentCategory.equals("Красота")) {
+                    Picasso.get().load(R.drawable.beauty).into(imageView);
+                } else if (currentCategory.equals("Стиль")) {
+                    Picasso.get().load(R.drawable.style).into(imageView);
+                } else if (currentCategory.equals("Мода")) {
+                    Picasso.get().load(R.drawable.fashion).into(imageView);
+                } else if (currentCategory.equals("Косметика")) {
+                    Picasso.get().load(R.drawable.cosmetics).into(imageView);
+                } else if (currentCategory.equals("Соц.сети")) {
+                    Picasso.get().load(R.drawable.socialmedia).into(imageView);
+                } else if (currentCategory.equals("Реклама")) {
+                    Picasso.get().load(R.drawable.ad).into(imageView);
+                } else if (currentCategory.equals("Технологии")) {
+                    Picasso.get().load(R.drawable.tech).into(imageView);
+                } else if (currentCategory.equals("Саморазвитие")) {
+                    Picasso.get().load(R.drawable.improve).into(imageView);
+                } else if (currentCategory.equals("Хобби")) {
+                    Picasso.get().load(R.drawable.hobby).into(imageView);
+                } else if (currentCategory.equals("Развлечение")) {
+                    Picasso.get().load(R.drawable.fun).into(imageView);
+                } else if (currentCategory.equals("Корея")) {
+                    Picasso.get().load(R.drawable.korea).into(imageView);
+                } else if (currentCategory.equals("Рестораны")) {
+                    Picasso.get().load(R.drawable.restaurants).into(imageView);
+                } else if (currentCategory.equals("Кафе")) {
+                    Picasso.get().load(R.drawable.coffee).into(imageView);
+                } else if (currentCategory.equals("Отдых")) {
+                    Picasso.get().load(R.drawable.chill).into(imageView);
+                } else if (currentCategory.equals("Путешествия")) {
+                    Picasso.get().load(R.drawable.travel).into(imageView);
+                } else if (currentCategory.equals("Агрегатор опросов")) {
+                    Picasso.get().load(R.drawable.surveys).into(imageView);
+                } else if (currentCategory.equals("Триангуляция")) {
+                    Picasso.get().load(R.drawable.triangle).into(imageView);
+                } else {
+                    Picasso.get().load(R.drawable.default_image).into(imageView);
+                }
+
+                imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                imageView.setAdjustViewBounds(true);
+
+                int finalI = i;
+                int finalJ = j;
+
+                updateFilter(imageView, checkedItems[finalI + finalJ]);
+
+                imageView.setOnClickListener(view -> {
+                    checkedItems[finalI + finalJ] = !checkedItems[finalI + finalJ];
+
+                    updateFilter(imageView, checkedItems[finalI + finalJ]);
+                });
+
+                LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT);
+                imageParams.setMargins(buttonPadding, buttonPadding, buttonPadding, buttonPadding);
+                imageView.setLayoutParams(imageParams);
+
+                itemLayout.addView(imageView);
+
+                LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT);
+                textParams.setMargins(buttonPadding, 0, buttonPadding, 0);
+                rowLayout.addView(itemLayout);
+            }
+
+            layout.addView(rowLayout);
+
+            LinearLayout textLayout = new LinearLayout(requireContext());
+            textLayout.setOrientation(LinearLayout.HORIZONTAL);
+            textLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT));
+
+
+            for (int j = 0; j < buttonsPerRow && (i + j) < categoriesList.size(); j++) {
+                TextView textView = new TextView(requireContext());
+                textView.setText(categoriesList.get(i + j));
+                textView.setTextColor(ContextCompat.getColor(requireContext(), R.color.card8Color));
+                textView.setGravity(Gravity.CENTER);
+
+                LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+                        0,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        1.0f);
+                textParams.setMargins(buttonPadding, 0, buttonPadding, 0);
+                textView.setLayoutParams(textParams);
+
+                textLayout.addView(textView);
+            }
+
+
+
+
+            layout.addView(textLayout);
+        }
+
+        bottomSheetDialog.setOnShowListener(dialogInterface -> {
+            FrameLayout bottomSheet = bottomSheetDialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+
+            if (bottomSheet != null) {
+                BottomSheetBehavior.from(bottomSheet).setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                    @Override
+                    public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                        if (newState == BottomSheetBehavior.STATE_DRAGGING) {
+                            BottomSheetBehavior.from(bottomSheet).setState(BottomSheetBehavior.STATE_EXPANDED);
+                        }
+                    }
+
+                    @Override
+                    public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                    }
+                });
+            }
+        });
+
+        MaterialButton okButton = new MaterialButton(requireContext());
+        okButton.setText("OK");
+        okButton.setOnClickListener(view -> {
+            StringBuilder selectedCategoriesMessage = new StringBuilder("Выбранные категории:\n");
+            selectedCategories.clear();
+
+            for (int i = 0; i < checkedItems.length; i++) {
+                if (checkedItems[i]) {
+                    String selectedCategory = categoriesList.get(i);
+                    selectedCategories.add(selectedCategory);
+                    selectedCategoriesMessage.append("- ").append(selectedCategory).append("\n");
+                }
+            }
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+            builder.setMessage(selectedCategoriesMessage.toString());
+            builder.setPositiveButton("OK", (dialog, which) -> {
+                dialog.dismiss();
+                bottomSheetDialog.dismiss();
+                refreshButtons();
+            });
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        });
+
+        MaterialButton cancelButton = new MaterialButton(requireContext());
+        cancelButton.setText("Отмена");
+        cancelButton.setOnClickListener(view -> bottomSheetDialog.dismiss());
+
+        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        buttonParams.setMargins(buttonPadding, buttonPadding, buttonPadding, buttonPadding);
+
+        okButton.setLayoutParams(buttonParams);
+        cancelButton.setLayoutParams(buttonParams);
+
+        layout.addView(okButton);
+        layout.addView(cancelButton);
+
+        scrollView.addView(layout);
+
+        bottomSheetDialog.setContentView(scrollView);
+        bottomSheetDialog.show();
+    }
+
+
+    private void updateFilter(ImageView imageView, boolean isChecked) {
+        int[] colorArray = new int[]{R.color.card1Color, R.color.card4Color, R.color.card5Color,
+                R.color.card9Color, R.color.card11Color};
+        int randomIndex = new Random().nextInt(colorArray.length);
+        int randomColor = getResources().getColor(colorArray[randomIndex]);
+        if (isChecked) {
+            imageView.setColorFilter(Color.parseColor(String.format("#%06X", (0xFFFFFF & randomColor))), PorterDuff.Mode.SRC_ATOP);
+        } else {
+            imageView.clearColorFilter();
+        }
+    }
+
+    private void refreshButtons() {
+        binding.buttonContainer.removeAllViews();
+        try {
+            createCategoryViews(selectedCategories, categoryColors, jsonArray);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public void onDestroyView() {

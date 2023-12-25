@@ -1,8 +1,10 @@
 package com.cloudycat.cloudyapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Menu;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -50,6 +52,20 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
+
+        // Find the ImageView in the navigation header
+        ImageView profileImageView = binding.navView.getHeaderView(0).findViewById(R.id.imageView);
+
+        // Set an OnClickListener on the ImageView
+        profileImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Create an Intent to start EditProfileActivity
+                Intent intent = new Intent(MainActivity.this, EditProfileActivity.class);
+                startActivity(intent);
+            }
+        });
+
         TextView log = (TextView) findViewById(R.id.login);
         String name;
         name= LoginActivity.FirstName;
