@@ -79,7 +79,7 @@ public class SecondActivity extends AppCompatActivity {
 
             // Обновляем TextView отформатированным JSON
             TextView surveyAll = findViewById(R.id.surveyAll);
-            surveyAll.setText(formattedJson);
+//            surveyAll.setText(formattedJson);
 
             // Извлекаем массив вопросов
             JSONArray questionsArray = surveyInfo.getJSONArray("questions");

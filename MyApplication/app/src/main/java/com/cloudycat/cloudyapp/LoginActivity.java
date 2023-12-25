@@ -68,8 +68,8 @@ public class LoginActivity extends AppCompatActivity {
 
                 sendJsonPostRequest(login.getText().toString(), password.getText().toString());
 
-                //Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                Intent intent = new Intent(LoginActivity.this, EditProfileActivity.class);
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+//                Intent intent = new Intent(LoginActivity.this, EditProfileActivity.class);
                 startActivity(intent);
             }
         };
