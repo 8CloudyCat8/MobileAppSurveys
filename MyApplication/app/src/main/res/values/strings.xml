@@ -27,8 +27,6 @@
     <string name="login_page_login_or_reg">авторизуйтесь или зарегистрируйтесь</string>
     <string name="login_page_email">Email</string>
     <string name="login_page_password">Пароль</string>
-    <string name="login_page_remember">Запомнить меня</string>
-    <string name="login_page_register">Зарегистрироваться</string>
     <string name="login_page_login">Авторизоваться</string>
     <string name="large_text">
     </string>
@@ -49,7 +47,7 @@
     <string-array name="familyStatus_array">
         <item>Не замужем / Не женат</item>
         <item>Замужем / Женат</item>
-        <item>Разведен / Разведена</item>
+        <item>Разведён / Разведена</item>
         <item>Вдовец / Вдова</item>
     </string-array>
 
