@@ -355,6 +355,5 @@ public class LoginActivity extends AppCompatActivity {
                     ex.toString(), Toast.LENGTH_SHORT);
             toast.show();
         }
-
     }
 }

@@ -10,6 +10,8 @@
     <string name="menu_home">Главная страница</string>
     <string name="menu_gallery">Опросы</string>
     <string name="menu_slideshow">Третья страница</string>
+    <string name="menu_enter">Видео </string>
+
 
     <string name="card1_text">"Любимый вид спорта"</string>
     <string name="card2_text">"Любимый музыкальный жанр"</string>

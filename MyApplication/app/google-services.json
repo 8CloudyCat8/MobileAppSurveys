@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "952463230150",
+    "firebase_url": "https://videochat-27e22-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "videochat-27e22",
+    "storage_bucket": "videochat-27e22.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:952463230150:android:b21170b18cf48b79af83c7",
+        "android_client_info": {
+          "package_name": "com.cloudycat.cloudyapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAASV0rEdKXChbpCPUgevSjJiwhinZYrnc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

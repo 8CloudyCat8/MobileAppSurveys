@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="purple_200">#526ed2</color>
+    <color name="purple_300">#8C9FFF</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#AE6AFF</color>
+    <color name="green_300">#CDFFC4</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
@@ -27,6 +29,7 @@
     <color name="card10Color">#4CAF50</color>
     <color name="card11Color">#EB5085</color>
     <color name="card12Color">#009688</color>
+    <color name="card13Color">#C9F9FF</color>
     <color name="colorGray">#AEACA5</color>
 
 
