@@ -23,4 +23,10 @@
         android:label="@string/menu_slideshow"
         tools:layout="@layout/fragment_slideshow" />
 
+    <activity
+        android:id="@+id/nav_enter"
+        android:name="com.cloudycat.cloudyapp.ui.EnterActivity"
+        android:label="@string/menu_enter"
+        tools:layout="@layout/activity_enter" />
+
 </navigation>

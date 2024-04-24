@@ -93,7 +93,12 @@ public class GalleryFragment extends Fragment {
             fetchData();
         });
 
-        fetchData();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                fetchData();
+            }
+        }, 500);
 
         Button btnFilters = root.findViewById(R.id.btnFilters);
         btnFilters.setOnClickListener(view -> showBottomSheet(categoriesList));
@@ -189,7 +194,7 @@ public class GalleryFragment extends Fragment {
 
         // Default emoji for categories not present in the map
         String defaultEmoji = "⚪";
-
+        int delayMultiplier = 20; // Delay multiplier for animation
         for (int k = 0; k < categoriesList.size(); k++) {
             String category = categoriesList.get(k);
             int categoryColor = categoryColors.get(k);
@@ -205,6 +210,9 @@ public class GalleryFragment extends Fragment {
 
             TextView categoryText = createCategoryTextView(categoryWithEmoji, categoryColor);
             binding.buttonContainer.addView(categoryText);
+
+            // Animate category text
+            animateView(categoryText, k * delayMultiplier);
 
             // Add margin after the category name
             addMarginView();
@@ -222,6 +230,15 @@ public class GalleryFragment extends Fragment {
 
             addFinalMarginView(); // Add additional margin after the last button in the category
         }
+    }
+
+    private void animateView(View view, int delay) {
+        view.setAlpha(0f);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(view, "alpha", 0f, 1f);
+            alphaAnimator.setDuration(1000);
+            alphaAnimator.start();
+        }, delay);
     }
 
     private void addFinalMarginView() {
