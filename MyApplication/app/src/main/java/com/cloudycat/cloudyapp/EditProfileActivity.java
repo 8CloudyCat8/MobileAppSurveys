@@ -80,6 +80,7 @@ public class EditProfileActivity extends AppCompatActivity implements AdapterVie
 
         saveButton = findViewById(R.id.saveButton);
         reButton = findViewById(R.id.reButton);
+        reButton.setVisibility(View.GONE);
 
 
 
@@ -130,16 +131,10 @@ public class EditProfileActivity extends AppCompatActivity implements AdapterVie
             }
         });
 
-        reButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getRequestValue();
-                reButton.setVisibility(View.GONE);
-            }
-        });
 
 
 
+        getRequestValue();
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
